@@ -1,50 +1,56 @@
 from collections import deque
 
-def water_jug_bfs(capacity_a, capacity_b, target):
+def water_jug_bfs(capacity_A, capacity_B, target):
     visited = set()
-    queue = deque([(0, 0)])  
-    path = {(0, 0): None}  
+    queue = deque()
+    parent = {}
+
+    start = (0, 0)
+    queue.append(start)
+    visited.add(start)
+    parent[start] = None
 
     while queue:
-        a, b = queue.popleft()
+        current_A, current_B = queue.popleft()
 
-        if a == target or b == target:
-            result_path = []
-            current_state = (a, b)
-            while current_state is not None: 
-                result_path.append(current_state)
-                current_state = path[current_state] 
-            return result_path[::-1] 
-        if (a, b) in visited:
-            continue
-        visited.add((a, b))
+        if (current_A, current_B) == (target, 0):
+            path = []
+            state = (current_A, current_B)
+            while state is not None:
+                path.append(state)
+                state = parent[state]
+            path.reverse()
 
-        possible_moves = [
-            (capacity_a, b),  
-            (a, capacity_b),  
-            (0, b),           
-            (a, 0),           
-            (a - min(a, capacity_b - b), b + min(a, capacity_b - b)),  
-            (a + min(b, capacity_a - a), b - min(b, capacity_a - a))   
+            print("Steps to reach the target:")
+            for step in path:
+                print(step)
+            return path
+
+        states = [
+            (capacity_A, current_B),  # Fill A
+            (current_A, capacity_B),  # Fill B
+            (0, current_B),           # Empty A
+            (current_A, 0),           # Empty B
+
+            # Pour A → B
+            (current_A - min(current_A, capacity_B - current_B),
+             current_B + min(current_A, capacity_B - current_B)),
+
+            # Pour B → A
+            (current_A + min(current_B, capacity_A - current_A),
+             current_B - min(current_B, capacity_A - current_A))
         ]
 
-        for new_state in possible_moves:
-            if new_state not in visited and new_state not in path:
-                queue.append(new_state)
-                path[new_state] = (a, b)  
-    
-    return "No solution found"
+        for state in states:
+            if state not in visited:
+                visited.add(state)
+                parent[state] = (current_A, current_B)
+                queue.append(state)
 
-if __name__ == "__main__":
-    capacity_a = 4
-    capacity_b = 3
-    target = 2
+    print("No solution found.")
+    return None
 
-    solution = water_jug_bfs(capacity_a, capacity_b, target)
-    
-    print("Steps to reach the target:")
-    if isinstance(solution, str):
-        print(solution)
-    else:
-        for step in solution:
-            print(step)
+capacity_A = 4
+capacity_B = 3
+target = 2  # We want to stop when we reach (2, 0)
+water_jug_bfs(capacity_A, capacity_B, target)
